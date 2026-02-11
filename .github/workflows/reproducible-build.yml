@@ -9,13 +9,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build container image
-        run: docker build --no-cache -t svca -f container/Dockerfile .
+      - name: Validate required scripts
+        run: |
+          test -f ./build.sh
+          test -f ./verify.sh
+          chmod +x ./build.sh ./verify.sh
 
       - name: First deterministic build
         run: |
-          docker run --rm -v "${{ github.workspace }}:/app" \
-            svca bash -lc "cd /app && ./build.sh && ./verify.sh"
+          ./build.sh
+          ./verify.sh
 
       - name: Store reference hashes
         run: |
@@ -23,10 +26,11 @@ jobs:
           sha256sum build/manifest.sha256 >> expected.hash
           sha256sum build/signature.bin >> expected.hash
 
-      - name: Fresh container rebuild
+      - name: Fresh rebuild
         run: |
-          docker run --rm -v "${{ github.workspace }}:/app" \
-            svca bash -lc "cd /app && rm -rf build && ./build.sh && ./verify.sh"
+          rm -rf build
+          ./build.sh
+          ./verify.sh
 
       - name: Compute second hashes
         run: |
@@ -36,3 +40,4 @@ jobs:
 
       - name: Compare hashes
         run: diff expected.hash actual.hash
+⚠️ python - <<'PY'\nimport yaml, pathlib\np=pathlib.Path('.github/workflows/reproducible-

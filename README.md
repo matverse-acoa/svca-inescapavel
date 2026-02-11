@@ -28,4 +28,4 @@ sha256sum build/module.wasm build/manifest.sha256 build/signature.bin
 
 Os hashes serão idênticos.
 
-O CI valida isso automaticamente.
+O CI valida isso automaticamente com dois builds consecutivos e compara os hashes dos artefatos assinados.
