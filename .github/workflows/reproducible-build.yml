@@ -40,3 +40,4 @@ jobs:
 
       - name: Compare hashes
         run: diff expected.hash actual.hash
+⚠️ python - <<'PY'\nimport yaml, pathlib\np=pathlib.Path('.github/workflows/reproducible-
