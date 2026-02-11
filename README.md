@@ -1,19 +1,31 @@
 # svca-inescapavel
 
-svca-inescapavel
+## O que `build.sh` faz
 
-## Merge workflow for PR branches
+* Compila `src/module.go` para WASM com flags determinísticas:
+  * `GOOS=js`
+  * `GOARCH=wasm`
+  * `-trimpath`
+  * `-buildid=`
+* Gera `manifest.sha256`
+* Gera `manifest.json` estático (sem timestamp)
+* Assina o manifesto usando chave Ed25519 **já versionada**
+* Nunca gera ou sobrescreve chave pública
+* Não acessa rede
+* Não depende de data/hora
 
-Use the following commands to update and merge the reviewed branch into the target branch:
+⚠️ O repositório contém a chave pública estável (`capsule/pubkey.pem`).  
+A chave privada não é versionada.
+
+## Determinismo Formal
+
+Se dois usuários executarem:
 
 ```bash
-git remote add origin git@github.com:MatVerse-py/svca-inescapavel.git
-# or: git remote set-url origin git@github.com:MatVerse-py/svca-inescapavel.git
-
-git pull origin codex/update-readme-with-resolved-version
-git checkout codex/update-readme-with-resolved-version
-git merge codex/fix-issues-flagged-in-pr-#5-review
-git push -u origin codex/update-readme-with-resolved-version
+./build.sh
+sha256sum build/module.wasm build/manifest.sha256 build/signature.bin
 ```
 
-If you have no `origin` remote configured yet, add it first as shown above.
+Os hashes serão idênticos.
+
+O CI valida isso automaticamente com dois builds consecutivos e compara os hashes dos artefatos assinados.

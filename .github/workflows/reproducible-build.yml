@@ -1,0 +1,42 @@
+name: Reproducible Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required scripts
+        run: |
+          test -f ./build.sh
+          test -f ./verify.sh
+          chmod +x ./build.sh ./verify.sh
+
+      - name: First deterministic build
+        run: |
+          ./build.sh
+          ./verify.sh
+
+      - name: Store reference hashes
+        run: |
+          sha256sum build/module.wasm > expected.hash
+          sha256sum build/manifest.sha256 >> expected.hash
+          sha256sum build/signature.bin >> expected.hash
+
+      - name: Fresh rebuild
+        run: |
+          rm -rf build
+          ./build.sh
+          ./verify.sh
+
+      - name: Compute second hashes
+        run: |
+          sha256sum build/module.wasm > actual.hash
+          sha256sum build/manifest.sha256 >> actual.hash
+          sha256sum build/signature.bin >> actual.hash
+
+      - name: Compare hashes
+        run: diff expected.hash actual.hash
